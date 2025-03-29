@@ -27,7 +27,8 @@ jobs:
     - name: Merge JSON files
       run: |
         # Combine all JSON files into one array
-        jq -s 'add' vn/*.json > merged.json
+        jq -s 'add' vn/*.json > vnr/merged.json
+        jq -s 'add' favs/*.json > favsr/merged.json
 
     - name: Commit merged file
       run: |
