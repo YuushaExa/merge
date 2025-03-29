@@ -1,9 +1,13 @@
 name: Merge JSON Files
 
 on:
-  push: 
+  push:
     branches:
       - main  # Trigger the workflow on push to the main branch
+    # Optional: Only trigger if relevant JSON files changed
+    # paths:
+    #   - 'vn/**.json'
+    #   - 'favs/**.json'
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -12,30 +16,38 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # Use latest version
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    # Removed Python setup as it's not needed for jq
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install jq
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq # Install jq using system package manager
+
+    - name: Create output directories
+      run: mkdir -p vnr favsr # Ensure the target directories exist
 
     - name: Merge JSON files
+      id: merge # Give this step an ID to potentially check its output later if needed
       run: |
-        # Combine all JSON files into one array
-        jq -s 'add' vn/*.json > vnr/merged.json
-        jq -s 'add' favs/*.json > favsr/merged.json
+        echo "Merging vn/*.json..."
+        jq -s 'add' vn/*.json > vnr/merged.json || { echo "Error merging vn/*.json"; exit 1; } # Add error checking
+        echo "Merging favs/*.json..."
+        jq -s 'add' favs/*.json > favsr/merged.json || { echo "Error merging favs/*.json"; exit 1; } # Add error checking
+        echo "JSON files merged."
 
-    - name: Commit merged file
+    - name: Commit merged files
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add merged.json
-        git commit -m "Merged JSON files"
-        git push origin HEAD:main
+        # Correctly add BOTH generated files
+        git add vnr/merged.json favsr/merged.json
+        # Check if there are changes to commit before committing/pushing
+        if git diff --staged --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "Automated merge of JSON files" # Commit message can be more specific
+          echo "Pushing changes..."
+          git push origin HEAD:main
+        fi
       env:
-       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
