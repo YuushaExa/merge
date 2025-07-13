@@ -40,7 +40,7 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         # Correctly add BOTH generated files
-        git add vnr/merged.json favsr/merged.json
+        git add vnr/merged.json favsr/merged.json anime/merged.json
         # Check if there are changes to commit before committing/pushing
         if git diff --staged --quiet; then
           echo "No changes to commit."
