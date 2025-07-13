@@ -32,6 +32,8 @@ jobs:
         echo "Merging favs/*.json..."
         jq -s 'add' favs/*.json > favsr/merged.json || { echo "Error merging favs/*.json"; exit 1; } # Add error checking
         echo "JSON files merged."
+        jq -s 'add' anime/*.json > animer/merged.json || { echo "Error merging favs/*.json"; exit 1; } # Add error checking
+        echo "JSON files merged."
 
     - name: Commit merged files
       run: |
